@@ -2,8 +2,17 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   const defaultAtlasUri = 'mongodb+srv://NarasimhaDB:Mongodb%40123@cluster0.fxfjmby.mongodb.net/workspace?appName=Cluster0';
-  const primaryUri = process.env.MONGO_URI || defaultAtlasUri;
+  const rawUri = process.env.MONGO_URI || defaultAtlasUri;
+  
+  // Clean quotes, double quotes, and whitespace from env var
+  let primaryUri = rawUri.trim().replace(/^["']|["']$/g, '').trim();
   const isProduction = process.env.NODE_ENV === 'production';
+
+  // Validate scheme
+  if (!primaryUri.startsWith('mongodb://') && !primaryUri.startsWith('mongodb+srv://')) {
+    console.warn(`⚠️ Invalid MONGO_URI scheme. Falling back to default Atlas URI.`);
+    primaryUri = defaultAtlasUri;
+  }
 
   // Mask password for safe logging
   const maskedUri = primaryUri.replace(/:([^:@]+)@/, ':****@');
