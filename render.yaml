@@ -7,7 +7,7 @@ services:
     env: node
     region: singapore # Options: oregon, frankfurt, singapore, ohio
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
