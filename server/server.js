@@ -65,10 +65,43 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check
+// Root route & Health check
+app.get('/', (req, res) => {
+  const clientDist = path.join(__dirname, '../client/dist');
+  if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+    return res.sendFile(path.join(clientDist, 'index.html'));
+  }
+  res.json({
+    success: true,
+    message: '🚀 AI Workspace API Server is Live & Running!',
+    healthCheck: '/api/health',
+    clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+    endpoints: {
+      auth: '/api/auth',
+      notes: '/api/notes',
+      tasks: '/api/tasks',
+      documents: '/api/documents',
+      files: '/api/files',
+      voice: '/api/voice',
+      search: '/api/search',
+      admin: '/api/admin',
+    },
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'WorkSpace API is running', timestamp: new Date() });
 });
+
+// Serve frontend static build if available
+const clientDistPath = path.join(__dirname, '../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) return next();
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use('*', (req, res) => {
