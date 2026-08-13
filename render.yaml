@@ -1,0 +1,42 @@
+services:
+  # -------------------------------------------------------------------
+  # Backend API Web Service (Node.js / Express)
+  # -------------------------------------------------------------------
+  - type: web
+    name: ai-workspace-server
+    env: node
+    region: singapore # Options: oregon, frankfurt, singapore, ohio
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Set in Render Dashboard (MongoDB Atlas connection string)
+      - key: JWT_SECRET
+        generateValue: true # Render automatically generates a secure 256-bit random key
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: CLIENT_URL
+        sync: false # Set in Render Dashboard (e.g. https://ai-workspace-client.onrender.com)
+      - key: MAX_FILE_SIZE
+        value: 25165824 # 25 MB
+
+  # -------------------------------------------------------------------
+  # Frontend Static Site (React / Vite / TypeScript)
+  # -------------------------------------------------------------------
+  - type: static
+    name: ai-workspace-client
+    region: singapore
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false # Set in Render Dashboard (e.g. https://ai-workspace-server.onrender.com/api)
